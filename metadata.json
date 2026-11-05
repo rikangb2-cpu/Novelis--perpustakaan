@@ -1,0 +1,6 @@
+{
+  "name": "NOVELIA – Perpustakaan Digital Pribadi",
+  "description": "Aplikasi mobile perpustakaan digital pribadi untuk mengelola koleksi novel, melacak progres membaca, dan menjelajah buku favorit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
