@@ -120,6 +120,13 @@ export async function testSupabaseConnection(overrideUrl?: string, overrideKey?:
 
 // Convert DB snake_case row to Novel model
 export function mapRowToNovel(row: any): Novel {
+  const excerptObj = typeof row.excerpt === 'object' && row.excerpt !== null ? row.excerpt : null;
+  const rawChapters = excerptObj && Array.isArray(excerptObj.chapters) && excerptObj.chapters.length > 0
+    ? excerptObj.chapters
+    : Array.isArray(row.chapters) && row.chapters.length > 0
+      ? row.chapters
+      : undefined;
+
   return {
     id: row.id,
     title: row.title || 'Tanpa Judul',
@@ -143,10 +150,14 @@ export function mapRowToNovel(row: any): Novel {
     personalNotes: row.personal_notes || '',
     lastReadDate: row.last_read_date || 'Belum dibaca',
     addedDate: row.added_date || 'Hari ini',
-    excerpt: typeof row.excerpt === 'object' && row.excerpt !== null ? row.excerpt : {
+    excerpt: excerptObj ? {
+      chapterTitle: excerptObj.chapterTitle || `Bab ${row.current_chapter || 1}`,
+      content: Array.isArray(excerptObj.content) ? excerptObj.content : [row.synopsis || 'Membaca membuka cakrawala pemikiran yang luas.']
+    } : {
       chapterTitle: `Bab ${row.current_chapter || 1}: Bagian Awal`,
       content: [row.synopsis || 'Membaca membuka cakrawala pemikiran yang luas.']
     },
+    chapters: rawChapters,
     readingHistory: Array.isArray(row.reading_logs) ? row.reading_logs.map(mapRowToReadingLog) : [],
     quotes: Array.isArray(row.book_quotes) ? row.book_quotes.map(mapRowToBookQuote) : []
   };
@@ -176,7 +187,11 @@ export function mapNovelToRow(novel: Novel) {
     personal_notes: novel.personalNotes,
     last_read_date: novel.lastReadDate,
     added_date: novel.addedDate,
-    excerpt: novel.excerpt || null
+    excerpt: {
+      chapterTitle: novel.excerpt?.chapterTitle || 'Bab 1',
+      content: novel.excerpt?.content || [],
+      chapters: novel.chapters || []
+    }
   };
 }
 
@@ -309,6 +324,13 @@ export async function updateNovelInSupabase(id: string, updates: Partial<Novel>)
     if (updates.pdfFileName !== undefined) dbUpdates.pdf_file_name = updates.pdfFileName;
     if (updates.pdfFileSize !== undefined) dbUpdates.pdf_file_size = updates.pdfFileSize;
     if (updates.coverImageUrl !== undefined) dbUpdates.cover_image_url = updates.coverImageUrl;
+    if (updates.excerpt !== undefined || updates.chapters !== undefined) {
+      dbUpdates.excerpt = {
+        chapterTitle: updates.excerpt?.chapterTitle || 'Bab 1',
+        content: updates.excerpt?.content || [],
+        chapters: updates.chapters || []
+      };
+    }
 
     const { error } = await client.from('novels').update(dbUpdates).eq('id', id);
 

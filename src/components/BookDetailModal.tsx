@@ -253,6 +253,31 @@ export const BookDetailModal: React.FC<BookDetailModalProps> = ({
           </p>
         </div>
 
+        {/* Chapters List from Uploaded File */}
+        {novel.chapters && novel.chapters.length > 0 && (
+          <div className="px-5 mt-6">
+            <h4 className="text-xs font-bold text-slate-700 tracking-wide uppercase mb-2 flex items-center justify-between">
+              <span>Daftar Bab Naskah ({novel.chapters.length} Bab)</span>
+              <span className="text-[10px] text-amber-700 font-semibold">
+                {novel.pdfFileName || novel.sourceFileName ? `📄 ${novel.pdfFileName || novel.sourceFileName}` : 'Naskah Asli'}
+              </span>
+            </h4>
+            <div className="max-h-44 overflow-y-auto space-y-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200 no-scrollbar">
+              {novel.chapters.map((chap, idx) => (
+                <div 
+                  key={chap.id || idx}
+                  className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs flex items-center justify-between text-slate-800"
+                >
+                  <span className="font-medium truncate pr-2">{chap.chapterTitle}</span>
+                  <span className="text-[10px] text-slate-400 shrink-0 font-mono">
+                    {chap.content.length} paragraf
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Saved Quotes Section */}
         {novel.quotes && novel.quotes.length > 0 && (
           <div className="px-5 mt-6">

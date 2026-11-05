@@ -40,8 +40,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      alert('Mohon pilih file berekstensi .pdf');
+    const validExtensions = ['.pdf', '.txt', '.md'];
+    const hasValidExt = validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
+
+    if (!hasValidExt && file.type !== 'application/pdf') {
+      alert('Mohon pilih file berekstensi .pdf, .txt, atau .md');
       return;
     }
 
@@ -51,12 +54,12 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       const result = reader.result as string;
       onAttachPdf(novel.id, file, result);
       setUploadProgress(false);
-      setSuccessMsg('File PDF berhasil disimpan ke perpustakaan!');
+      setSuccessMsg(`File ${file.name} berhasil dimuat & isi novel diperbarui!`);
       setTimeout(() => setSuccessMsg(''), 3000);
     };
     reader.onerror = () => {
       setUploadProgress(false);
-      alert('Gagal membaca file PDF');
+      alert('Gagal membaca file');
     };
     reader.readAsDataURL(file);
   };
@@ -115,7 +118,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="application/pdf"
+            accept=".pdf,.txt,.md,application/pdf,text/plain"
             className="hidden"
           />
         </div>

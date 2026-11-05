@@ -26,6 +26,7 @@ import {
   seedSupabaseIfEmpty,
   testSupabaseConnection
 } from './services/supabaseClient';
+import { parseNovelFile } from './utils/fileParser';
 
 const STORAGE_KEY_BOOKS = 'novelia_books_v1';
 const STORAGE_KEY_PROFILE = 'novelia_profile_v1';
@@ -288,19 +289,28 @@ export default function App() {
     const sizeInMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
     let finalPdfUrl = dataUrl;
 
+    // Parse real content & chapters from the uploaded file
+    let parsedData = null;
+    try {
+      showToast(`Membaca dan mengekstrak isi teks ${file.name}...`);
+      parsedData = await parseNovelFile(file);
+    } catch (err) {
+      console.warn('Could not extract text from file:', err);
+    }
+
     // If Supabase is connected, attempt upload to Supabase Storage bucket 'novel-pdfs'
     if (isCloudConnected) {
-      showToast(`Mengunggah PDF "${file.name}" ke Supabase Cloud...`);
+      showToast(`Mengunggah "${file.name}" ke Supabase Cloud...`);
       const uploadRes = await uploadPdfToSupabase(file, novelId);
       if (uploadRes.publicUrl) {
         finalPdfUrl = uploadRes.publicUrl;
-        showToast(`PDF tersimpan di Supabase Cloud Storage!`);
+        showToast(`File & naskah tersimpan di Supabase Cloud Storage!`);
       } else {
         console.warn('Storage upload note:', uploadRes.error);
-        showToast(`PDF tersimpan secara lokal.`);
+        showToast(`File disimpan secara lokal.`);
       }
     } else {
-      showToast(`File PDF ${file.name} berhasil dilampirkan!`);
+      showToast(`File ${file.name} berhasil dilampirkan & isi buku diperbarui!`);
     }
 
     setNovels((prev) =>
@@ -310,7 +320,13 @@ export default function App() {
             ...n,
             pdfUrl: finalPdfUrl,
             pdfFileName: file.name,
-            pdfFileSize: sizeInMb
+            pdfFileSize: sizeInMb,
+            sourceFileName: file.name,
+            sourceFileType: parsedData?.sourceFileType || 'pdf',
+            totalPages: parsedData ? parsedData.totalPages : n.totalPages,
+            totalChapters: parsedData ? parsedData.totalChapters : n.totalChapters,
+            chapters: parsedData ? parsedData.chapters : n.chapters,
+            excerpt: parsedData ? parsedData.excerpt : n.excerpt
           };
         }
         return n;
@@ -321,7 +337,13 @@ export default function App() {
       await updateNovelInSupabase(novelId, {
         pdfUrl: finalPdfUrl,
         pdfFileName: file.name,
-        pdfFileSize: sizeInMb
+        pdfFileSize: sizeInMb,
+        ...(parsedData ? {
+          totalPages: parsedData.totalPages,
+          totalChapters: parsedData.totalChapters,
+          excerpt: parsedData.excerpt,
+          chapters: parsedData.chapters
+        } : {})
       });
     }
   };

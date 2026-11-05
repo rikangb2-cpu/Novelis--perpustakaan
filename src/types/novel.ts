@@ -15,6 +15,15 @@ export interface NovelExcerpt {
   content: string[];
 }
 
+export interface NovelChapter {
+  id: string;
+  chapterNumber: number;
+  chapterTitle: string;
+  content: string[];
+  pageStart?: number;
+  pageEnd?: number;
+}
+
 export interface BookQuote {
   id: string;
   text: string;
@@ -35,6 +44,8 @@ export interface Novel {
   pdfFileName?: string;
   pdfFileSize?: string;
   pdfPageCount?: number;
+  sourceFileName?: string;
+  sourceFileType?: 'pdf' | 'txt' | 'md' | 'manual';
   totalPages: number;
   currentPage: number;
   totalChapters: number;
@@ -47,6 +58,7 @@ export interface Novel {
   lastReadDate: string;
   addedDate: string;
   excerpt: NovelExcerpt;
+  chapters?: NovelChapter[];
   readingHistory: ReadingLog[];
   quotes?: BookQuote[];
 }
