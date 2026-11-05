@@ -21,6 +21,7 @@ import {
 interface ProfileTabProps {
   profile: UserProfile;
   novels: Novel[];
+  isCloudConnected?: boolean;
   onUpdateProfileName: (name: string) => void;
   onResetData: () => void;
   onSelectNovelById: (id: string) => void;
@@ -30,6 +31,7 @@ interface ProfileTabProps {
 export const ProfileTab: React.FC<ProfileTabProps> = ({
   profile,
   novels,
+  isCloudConnected = false,
   onUpdateProfileName,
   onResetData,
   onSelectNovelById,
@@ -246,27 +248,44 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       <div className="px-5 mt-4">
         <div 
           onClick={onOpenSupabaseModal}
-          className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/80 hover:border-emerald-400 transition-all cursor-pointer shadow-2xs hover:shadow-sm touch-press"
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs hover:shadow-sm touch-press ${
+            isCloudConnected 
+              ? 'bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-emerald-300' 
+              : 'bg-gradient-to-r from-slate-50 to-slate-100/70 border-slate-200 hover:border-slate-300'
+          }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+              <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-xs transition-colors ${
+                isCloudConnected ? 'bg-emerald-600' : 'bg-slate-700'
+              }`}>
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                  Cloud Database & Storage
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider block ${
+                    isCloudConnected ? 'text-emerald-800' : 'text-slate-600'
+                  }`}>
+                    {isCloudConnected ? 'Supabase Cloud Terhubung' : 'Cloud Database & Storage'}
+                  </span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                </div>
                 <h4 className="text-sm font-bold text-slate-900">
-                  Sinkronisasi Supabase & PDF
+                  {isCloudConnected ? 'Sinkronisasi Realtime Aktif' : 'Sambungkan Supabase & Anon Key'}
                 </h4>
                 <p className="text-[11px] text-slate-600">
-                  Skrip SQL tabel, penyimpanan file PDF, dan ekspor data JSON
+                  {isCloudConnected 
+                    ? 'Novel, riwayat membaca, dan file PDF tersimpan di server cloud'
+                    : 'Koneksikan database cloud, ekspor JSON, dan dapatkan skrip SQL'}
                 </p>
               </div>
             </div>
-            <span className="text-xs text-emerald-800 font-bold bg-white/80 px-2.5 py-1 rounded-lg border border-emerald-200">
-              Buka &rarr;
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border shrink-0 ${
+              isCloudConnected 
+                ? 'text-emerald-800 bg-white/80 border-emerald-200' 
+                : 'text-slate-700 bg-white border-slate-200'
+            }`}>
+              {isCloudConnected ? 'Kelola' : 'Sambungkan'} &rarr;
             </span>
           </div>
         </div>

@@ -11,25 +11,30 @@ import {
   CheckCircle2,
   Bookmark,
   FolderKanban,
-  Sparkles
+  Sparkles,
+  Database
 } from 'lucide-react';
 
 interface HomeTabProps {
   novels: Novel[];
   profile: UserProfile;
+  isCloudConnected?: boolean;
   onSelectNovel: (novel: Novel) => void;
   onOpenAddModal: () => void;
   onOpenReader: (novel: Novel) => void;
   onNavigateToCollection: (collectionFolder?: 'all' | 'reading' | 'completed' | 'want_to_read') => void;
+  onOpenSupabaseModal?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
   novels,
   profile,
+  isCloudConnected = false,
   onSelectNovel,
   onOpenAddModal,
   onOpenReader,
-  onNavigateToCollection
+  onNavigateToCollection,
+  onOpenSupabaseModal
 }) => {
   const currentlyReading = novels.filter((n) => n.status === 'reading');
   const completedNovels = novels.filter((n) => n.status === 'completed');
@@ -66,12 +71,32 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </div>
         </div>
 
-        {/* Reader Streak Badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold shadow-2xs">
-          <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-          <span className="tabular-nums text-[11px]">
-            {profile.streakDays} Hari Streak
-          </span>
+        {/* Right Header Badges */}
+        <div className="flex items-center gap-2">
+          {/* Cloud Database Pill */}
+          <button
+            onClick={onOpenSupabaseModal}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-2xs ${
+              isCloudConnected
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+            }`}
+            title="Klik untuk membuka Pengaturan Supabase Cloud"
+          >
+            <Database className={`w-3.5 h-3.5 ${isCloudConnected ? 'text-emerald-600' : 'text-slate-400'}`} />
+            <span className="text-[11px] font-bold">
+              {isCloudConnected ? 'Cloud' : 'Lokal'}
+            </span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+          </button>
+
+          {/* Reader Streak Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold shadow-2xs">
+            <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+            <span className="tabular-nums text-[11px]">
+              {profile.streakDays} Hari Streak
+            </span>
+          </div>
         </div>
       </header>
 
@@ -101,6 +126,46 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <span>Total Rak: <strong className="text-amber-700 font-semibold">{novels.length} Novel</strong></span>
           </div>
         </div>
+
+        {/* Banner Supabase Cloud Connection */}
+        {!isCloudConnected ? (
+          <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white shadow-sm flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+                <Database className="w-4 h-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold leading-tight truncate">
+                  Sambungkan Database Supabase
+                </h4>
+                <p className="text-[10px] text-emerald-100 mt-0.5 truncate">
+                  Koneksikan Anon Key & URL untuk database cloud
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onOpenSupabaseModal}
+              className="px-3 py-1.5 rounded-xl bg-white text-emerald-800 text-xs font-bold shadow-xs hover:bg-emerald-50 transition-colors shrink-0 cursor-pointer"
+            >
+              Sambungkan
+            </button>
+          </div>
+        ) : (
+          <div 
+            onClick={onOpenSupabaseModal}
+            className="mt-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between cursor-pointer hover:bg-emerald-100/60 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold text-emerald-950">
+                Cloud Database Supabase Aktif
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold text-emerald-700">
+              Kelola &rarr;
+            </span>
+          </div>
+        )}
       </section>
 
       {/* 2. BAGIAN BUKU YANG SEDANG DIBACA (FOKUS & JELAS DENGAN GAMBAR SAMPUL ASLI) */}

@@ -1,19 +1,19 @@
 import { Novel, ReadingLog } from '../types/novel';
 
-export const SUPABASE_SQL_SCHEMA = `-- ==========================================
--- SKRIP SETUP DATABASE SUPABASE UNTUK NOVELIA
+export const SUPABASE_SQL_SCHEMA = `-- ========================================================
+-- SKRIP SETUP LENGKAP DATABASE SUPABASE UNTUK NOVELIA
 -- Jalankan skrip ini di: Supabase Dashboard -> SQL Editor -> New Query
--- ==========================================
+-- ========================================================
 
 -- 1. Buat Tabel Novel (Novels Table)
 CREATE TABLE IF NOT EXISTS public.novels (
   id TEXT PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID DEFAULT auth.uid(),
   title TEXT NOT NULL,
   author TEXT NOT NULL,
   genre TEXT NOT NULL,
-  cover_color TEXT,
-  cover_pattern TEXT,
+  cover_color TEXT DEFAULT 'from-amber-700 via-stone-800 to-black',
+  cover_pattern TEXT DEFAULT 'stars',
   cover_image_url TEXT,
   pdf_url TEXT,
   pdf_file_name TEXT,
@@ -30,18 +30,20 @@ CREATE TABLE IF NOT EXISTS public.novels (
   personal_notes TEXT,
   last_read_date TEXT,
   added_date TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
+  excerpt JSONB,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 2. Buat Tabel Riwayat Baca (Reading Logs Table)
 CREATE TABLE IF NOT EXISTS public.reading_logs (
   id TEXT PRIMARY KEY,
-  novel_id TEXT REFERENCES public.novels(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  novel_id TEXT NOT NULL REFERENCES public.novels(id) ON DELETE CASCADE,
+  user_id UUID DEFAULT auth.uid(),
   date TEXT NOT NULL,
   time TEXT NOT NULL,
-  pages_read INT NOT NULL,
-  chapter INT NOT NULL,
+  pages_read INT NOT NULL DEFAULT 0,
+  chapter INT NOT NULL DEFAULT 1,
   duration_minutes INT DEFAULT 0,
   note TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -50,8 +52,8 @@ CREATE TABLE IF NOT EXISTS public.reading_logs (
 -- 3. Buat Tabel Kutipan Buku (Quotes Table)
 CREATE TABLE IF NOT EXISTS public.book_quotes (
   id TEXT PRIMARY KEY,
-  novel_id TEXT REFERENCES public.novels(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  novel_id TEXT NOT NULL REFERENCES public.novels(id) ON DELETE CASCADE,
+  user_id UUID DEFAULT auth.uid(),
   text TEXT NOT NULL,
   page INT,
   date TEXT,
@@ -63,24 +65,52 @@ ALTER TABLE public.novels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reading_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.book_quotes ENABLE ROW LEVEL SECURITY;
 
--- 5. Buat Kebijakan Akses (RLS Policies)
-CREATE POLICY "Pengguna dapat mengelola novel mereka sendiri" 
+-- 5. Kebijakan Akses (RLS Policies)
+-- Kebijakan ini memungkinkan operasi penuh dengan Anon Public Key & Auth Session
+DROP POLICY IF EXISTS "Akses Penuh Novelia Novels" ON public.novels;
+CREATE POLICY "Akses Penuh Novelia Novels" 
 ON public.novels FOR ALL 
-USING (auth.uid() = user_id) 
-WITH CHECK (auth.uid() = user_id);
+USING (true) 
+WITH CHECK (true);
 
-CREATE POLICY "Pengguna dapat mengelola riwayat baca mereka sendiri" 
+DROP POLICY IF EXISTS "Akses Penuh Novelia Logs" ON public.reading_logs;
+CREATE POLICY "Akses Penuh Novelia Logs" 
 ON public.reading_logs FOR ALL 
-USING (auth.uid() = user_id) 
-WITH CHECK (auth.uid() = user_id);
+USING (true) 
+WITH CHECK (true);
 
-CREATE POLICY "Pengguna dapat mengelola kutipan mereka sendiri" 
+DROP POLICY IF EXISTS "Akses Penuh Novelia Quotes" ON public.book_quotes;
+CREATE POLICY "Akses Penuh Novelia Quotes" 
 ON public.book_quotes FOR ALL 
-USING (auth.uid() = user_id) 
-WITH CHECK (auth.uid() = user_id);
+USING (true) 
+WITH CHECK (true);
 
 -- 6. Setup Storage Bucket untuk File PDF Novel
--- Buat bucket dengan nama: 'novel-pdfs' di tab Storage Supabase.
+-- Buat bucket 'novel-pdfs' jika belum ada
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('novel-pdfs', 'novel-pdfs', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Kebijakan Akses Storage PDF
+DROP POLICY IF EXISTS "Akses Publik Baca PDF" ON storage.objects;
+CREATE POLICY "Akses Publik Baca PDF" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'novel-pdfs');
+
+DROP POLICY IF EXISTS "Akses Publik Upload PDF" ON storage.objects;
+CREATE POLICY "Akses Publik Upload PDF" 
+ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'novel-pdfs');
+
+DROP POLICY IF EXISTS "Akses Publik Update PDF" ON storage.objects;
+CREATE POLICY "Akses Publik Update PDF" 
+ON storage.objects FOR UPDATE 
+USING (bucket_id = 'novel-pdfs');
+
+DROP POLICY IF EXISTS "Akses Publik Hapus PDF" ON storage.objects;
+CREATE POLICY "Akses Publik Hapus PDF" 
+ON storage.objects FOR DELETE 
+USING (bucket_id = 'novel-pdfs');
 `;
 
 export function exportLibraryToSupabaseJson(novels: Novel[]): string {
