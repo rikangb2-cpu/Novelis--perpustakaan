@@ -42,8 +42,6 @@ export const ReaderModal: React.FC<ReaderModalProps> = ({
   onOpenPdf,
   onOpenQuoteModal
 }) => {
-  if (!isOpen || !novel) return null;
-
   // View modes: 'text' (e-reader format with extracted file content) or 'pdf' (original embedded visual viewer)
   const [viewMode, setViewMode] = useState<'text' | 'pdf'>('text');
   
@@ -54,24 +52,22 @@ export const ReaderModal: React.FC<ReaderModalProps> = ({
   const [hasRecorded, setHasRecorded] = useState(false);
 
   // Active chapter state
-  const chapters: NovelChapter[] = (novel.chapters && novel.chapters.length > 0)
+  const chapters: NovelChapter[] = (novel?.chapters && novel.chapters.length > 0)
     ? novel.chapters
     : [
         {
           id: 'chap-1',
           chapterNumber: 1,
-          chapterTitle: novel.excerpt?.chapterTitle || `Bab ${novel.currentChapter || 1}: Pendahuluan Kisah`,
-          content: novel.excerpt?.content || [
-            novel.synopsis || 'Kisah ini dimulai dari halaman pertama naskah novel Anda...',
+          chapterTitle: novel?.excerpt?.chapterTitle || `Bab ${novel?.currentChapter || 1}: Pendahuluan Kisah`,
+          content: novel?.excerpt?.content || [
+            novel?.synopsis || 'Kisah ini dimulai dari halaman pertama naskah novel Anda...',
             'Membaca adalah petualangan imajinasi yang membuka cakrawala pemikiran yang luas.'
           ]
         }
       ];
 
-  const initialChapIdx = Math.max(0, Math.min(chapters.length - 1, (novel.currentChapter || 1) - 1));
+  const initialChapIdx = Math.max(0, Math.min(chapters.length - 1, (novel?.currentChapter || 1) - 1));
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapIdx);
-  const currentChapter = chapters[currentChapterIdx] || chapters[0];
-
   const readingContainerRef = useRef<HTMLDivElement>(null);
 
   // Reading stopwatch / timer
@@ -88,17 +84,17 @@ export const ReaderModal: React.FC<ReaderModalProps> = ({
       const idx = Math.max(0, Math.min(chapters.length - 1, (novel.currentChapter || 1) - 1));
       setCurrentChapterIdx(idx);
     }
-  }, [novel?.id]);
+  }, [novel?.id, novel?.currentChapter]);
 
   useEffect(() => {
     let interval: any = null;
-    if (isTimerRunning) {
+    if (isTimerRunning && isOpen) {
       interval = setInterval(() => {
         setTimerSeconds((prev) => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning]);
+  }, [isTimerRunning, isOpen]);
 
   // Clean up audio on unmount or close
   useEffect(() => {
@@ -106,6 +102,10 @@ export const ReaderModal: React.FC<ReaderModalProps> = ({
       ambientSound.stop();
     };
   }, []);
+
+  if (!isOpen || !novel) return null;
+
+  const currentChapter = chapters[currentChapterIdx] || chapters[0];
 
   const handleSoundChange = (type: AmbientSoundType) => {
     setActiveSound(type);

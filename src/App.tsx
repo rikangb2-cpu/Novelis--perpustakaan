@@ -602,75 +602,87 @@ export default function App() {
       />
 
       {/* Detail Novel Screen Modal */}
-      <BookDetailModal
-        novel={selectedNovel}
-        isOpen={Boolean(selectedNovel)}
-        onClose={() => setSelectedNovel(null)}
-        onToggleFavorite={handleToggleFavorite}
-        onUpdateStatus={handleUpdateStatus}
-        onUpdateProgress={handleUpdateProgress}
-        onUpdateRating={handleUpdateRating}
-        onUpdateNotes={handleUpdateNotes}
-        onDeleteNovel={handleDeleteNovel}
-        onOpenReader={(novel) => {
-          setSelectedNovel(null);
-          setReaderNovel(novel);
-        }}
-        onOpenPdfModal={(novel) => {
-          setPdfNovel(novel);
-        }}
-        onOpenQuoteModal={(novel) => {
-          setQuoteNovel(novel);
-        }}
-      />
+      {selectedNovel && (
+        <BookDetailModal
+          novel={selectedNovel}
+          isOpen={Boolean(selectedNovel)}
+          onClose={() => setSelectedNovel(null)}
+          onToggleFavorite={handleToggleFavorite}
+          onUpdateStatus={handleUpdateStatus}
+          onUpdateProgress={handleUpdateProgress}
+          onUpdateRating={handleUpdateRating}
+          onUpdateNotes={handleUpdateNotes}
+          onDeleteNovel={handleDeleteNovel}
+          onOpenReader={(novel) => {
+            setSelectedNovel(null);
+            setReaderNovel(novel);
+          }}
+          onOpenPdfModal={(novel) => {
+            setPdfNovel(novel);
+          }}
+          onOpenQuoteModal={(novel) => {
+            setQuoteNovel(novel);
+          }}
+        />
+      )}
 
       {/* Reader View Modal */}
-      <ReaderModal
-        novel={readerNovel}
-        isOpen={Boolean(readerNovel)}
-        onClose={() => setReaderNovel(null)}
-        onRecordProgress={handleRecordProgress}
-        onOpenPdf={(novel) => {
-          setPdfNovel(novel);
-        }}
-        onOpenQuoteModal={(novel) => {
-          setQuoteNovel(novel);
-        }}
-      />
+      {readerNovel && (
+        <ReaderModal
+          novel={readerNovel}
+          isOpen={Boolean(readerNovel)}
+          onClose={() => setReaderNovel(null)}
+          onRecordProgress={handleRecordProgress}
+          onOpenPdf={(novel) => {
+            setPdfNovel(novel);
+          }}
+          onOpenQuoteModal={(novel) => {
+            setQuoteNovel(novel);
+          }}
+        />
+      )}
 
       {/* PDF Viewer & Upload Modal */}
-      <PdfViewerModal
-        novel={pdfNovel}
-        isOpen={Boolean(pdfNovel)}
-        onClose={() => setPdfNovel(null)}
-        onAttachPdf={handleAttachPdf}
-        onUpdateProgress={handleUpdateProgress}
-      />
+      {pdfNovel && (
+        <PdfViewerModal
+          novel={pdfNovel}
+          isOpen={Boolean(pdfNovel)}
+          onClose={() => setPdfNovel(null)}
+          onAttachPdf={handleAttachPdf}
+          onUpdateProgress={handleUpdateProgress}
+        />
+      )}
 
       {/* Aesthetic Quote Card Modal */}
-      <QuoteCardModal
-        novel={quoteNovel}
-        isOpen={Boolean(quoteNovel)}
-        onClose={() => setQuoteNovel(null)}
-        onSaveQuote={handleSaveQuote}
-      />
+      {quoteNovel && (
+        <QuoteCardModal
+          novel={quoteNovel}
+          isOpen={Boolean(quoteNovel)}
+          onClose={() => setQuoteNovel(null)}
+          onSaveQuote={handleSaveQuote}
+        />
+      )}
 
       {/* Supabase Cloud Setup & Sync Modal */}
-      <SupabaseModal
-        isOpen={isSupabaseModalOpen}
-        onClose={() => setIsSupabaseModalOpen(false)}
-        novels={novels}
-        profile={profile}
-        onUpdateProfile={handleUpdateProfile}
-        onCloudSyncSuccess={handleCloudSyncSuccess}
-      />
+      {isSupabaseModalOpen && (
+        <SupabaseModal
+          isOpen={isSupabaseModalOpen}
+          onClose={() => setIsSupabaseModalOpen(false)}
+          novels={novels}
+          profile={profile}
+          onUpdateProfile={handleUpdateProfile}
+          onCloudSyncSuccess={handleCloudSyncSuccess}
+        />
+      )}
 
       {/* Add Novel Modal */}
-      <AddBookModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddNovel={handleAddNovel}
-      />
+      {isAddModalOpen && (
+        <AddBookModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddNovel={handleAddNovel}
+        />
+      )}
     </AndroidFrame>
   );
 }

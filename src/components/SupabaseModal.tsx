@@ -43,8 +43,6 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({
   onUpdateProfile,
   onCloudSyncSuccess
 }) => {
-  if (!isOpen) return null;
-
   const initialCreds = getSupabaseCredentials();
   const [supabaseUrl, setSupabaseUrl] = useState(initialCreds.url || profile.supabaseUrl || '');
   const [supabaseAnonKey, setSupabaseAnonKey] = useState(initialCreds.anonKey || profile.supabaseAnonKey || '');
@@ -73,6 +71,8 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({
       });
     }
   }, []);
+
+  if (!isOpen) return null;
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);

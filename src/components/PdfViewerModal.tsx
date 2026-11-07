@@ -29,12 +29,12 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   onAttachPdf,
   onUpdateProgress
 }) => {
-  if (!isOpen || !novel) return null;
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [currentPage, setCurrentPage] = useState(novel.currentPage || 1);
+  const [currentPage, setCurrentPage] = useState(novel?.currentPage || 1);
   const [uploadProgress, setUploadProgress] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  if (!isOpen || !novel) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

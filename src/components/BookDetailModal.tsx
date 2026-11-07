@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Novel, NovelStatus } from '../types/novel';
 import { BookCover } from './BookCover';
 import { generatePrintablePdfCard } from '../utils/supabaseHelper';
@@ -47,12 +47,19 @@ export const BookDetailModal: React.FC<BookDetailModalProps> = ({
   onOpenPdfModal,
   onOpenQuoteModal
 }) => {
-  if (!isOpen || !novel) return null;
-
-  const [notes, setNotes] = useState(novel.personalNotes || '');
+  const [notes, setNotes] = useState(novel?.personalNotes || '');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [currentPageInput, setCurrentPageInput] = useState(novel.currentPage);
+  const [currentPageInput, setCurrentPageInput] = useState(novel?.currentPage || 0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (novel) {
+      setNotes(novel.personalNotes || '');
+      setCurrentPageInput(novel.currentPage || 0);
+    }
+  }, [novel?.id, novel?.currentPage, novel?.personalNotes]);
+
+  if (!isOpen || !novel) return null;
 
   const progressPercent = Math.min(100, Math.round((novel.currentPage / (novel.totalPages || 1)) * 100));
 

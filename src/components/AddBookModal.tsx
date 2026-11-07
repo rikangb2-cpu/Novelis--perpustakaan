@@ -33,8 +33,6 @@ export const AddBookModal: React.FC<AddBookModalProps> = ({
   onClose,
   onAddNovel
 }) => {
-  if (!isOpen) return null;
-
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [genre, setGenre] = useState(GENRES[1] || 'Fantasi & Petualangan');
@@ -58,6 +56,8 @@ export const AddBookModal: React.FC<AddBookModalProps> = ({
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [parseSuccessMsg, setParseSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  if (!isOpen) return null;
 
   // Handle file upload and content parsing
   const handleFileUpload = async (file: File) => {

@@ -16,14 +16,14 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   onClose,
   onSaveQuote
 }) => {
-  if (!isOpen || !novel) return null;
-
   const [quoteText, setQuoteText] = useState(
-    novel.synopsis ? `"${novel.synopsis.slice(0, 140)}..."` : 'Membaca adalah petualangan jiwa tanpa batas.'
+    novel?.synopsis ? `"${novel.synopsis.slice(0, 140)}..."` : 'Membaca adalah petualangan jiwa tanpa batas.'
   );
-  const [pageNumber, setPageNumber] = useState<number>(novel.currentPage || 1);
+  const [pageNumber, setPageNumber] = useState<number>(novel?.currentPage || 1);
   const [cardTheme, setCardTheme] = useState<'amber' | 'emerald' | 'indigo' | 'rose'>('amber');
   const [copied, setCopied] = useState(false);
+
+  if (!isOpen || !novel) return null;
 
   const themeStyles = {
     amber: 'bg-gradient-to-br from-amber-50 via-white to-amber-100/40 border-amber-200 text-slate-900',
