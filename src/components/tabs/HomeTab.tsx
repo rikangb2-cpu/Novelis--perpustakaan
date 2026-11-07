@@ -112,8 +112,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 {getGreeting()}, {profile.name}
               </h2>
             </div>
-            <div className="w-10 h-10 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800 font-bold text-sm shadow-2xs">
-              {profile.name.charAt(0)}
+            <div className="relative shrink-0">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-12 h-12 rounded-2xl object-cover border-2 border-amber-300 shadow-xs"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 border border-amber-200 flex items-center justify-center text-slate-950 font-bold text-base shadow-xs">
+                  {profile.name.charAt(0)}
+                </div>
+              )}
+              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" title="Pengguna Aktif" />
             </div>
           </div>
 

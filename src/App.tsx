@@ -36,7 +36,8 @@ const DEFAULT_PROFILE: UserProfile = {
   dailyGoalMinutes: 30,
   streakDays: 7,
   favoriteGenre: 'Sastra & Fiksi Sejarah',
-  avatarSeed: 'rian'
+  avatarSeed: 'rian',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'
 };
 
 export default function App() {
@@ -48,8 +49,12 @@ export default function App() {
         const parsed: Novel[] = JSON.parse(saved);
         return parsed.map((item) => {
           const defaultMatch = INITIAL_BOOKS.find((b) => b.id === item.id);
-          if (defaultMatch && defaultMatch.coverImageUrl && !item.coverImageUrl) {
-            return { ...item, coverImageUrl: defaultMatch.coverImageUrl };
+          if (defaultMatch) {
+            return {
+              ...item,
+              coverImageUrl: item.coverImageUrl || defaultMatch.coverImageUrl,
+              chapters: (item.chapters && item.chapters.length > 0) ? item.chapters : defaultMatch.chapters
+            };
           }
           return item;
         });
@@ -60,12 +65,16 @@ export default function App() {
     return INITIAL_BOOKS;
   });
 
-  // Load user profile
+  // Load user profile with avatar image
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (!parsed.avatarUrl) {
+          parsed.avatarUrl = DEFAULT_PROFILE.avatarUrl;
+        }
+        return parsed;
       }
     } catch (e) {
       console.error('Failed to load profile from localStorage', e);
@@ -382,8 +391,8 @@ export default function App() {
     }
   };
 
-  // Record reading session progress from Reader
-  const handleRecordProgress = async (novelId: string, pagesRead: number, note?: string) => {
+  // Record reading session progress from Reader (supports explicit target chapter for next/prev)
+  const handleRecordProgress = async (novelId: string, pagesRead: number, note?: string, targetChapter?: number) => {
     const now = new Date();
     const dateStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(now);
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -393,7 +402,7 @@ export default function App() {
       date: dateStr,
       time: timeStr,
       pagesRead,
-      chapter: 1,
+      chapter: targetChapter || 1,
       note: note || `Selesai membaca`,
       durationMinutes: 15
     };
@@ -404,7 +413,9 @@ export default function App() {
       prev.map((n) => {
         if (n.id === novelId) {
           const newCurrentPage = Math.min(n.totalPages, n.currentPage + pagesRead);
-          const newChapter = Math.min(n.totalChapters, n.currentChapter + 1);
+          const newChapter = targetChapter !== undefined 
+            ? Math.min(n.totalChapters, Math.max(1, targetChapter))
+            : Math.min(n.totalChapters, n.currentChapter + 1);
           const isCompleted = newCurrentPage >= n.totalPages;
 
           newLog = {
@@ -412,8 +423,8 @@ export default function App() {
             date: dateStr,
             time: timeStr,
             pagesRead,
-            chapter: n.currentChapter,
-            note: note || `Selesai membaca Bab ${n.currentChapter}`,
+            chapter: newChapter,
+            note: note || `Selesai membaca Bab ${newChapter}`,
             durationMinutes: 15
           };
 
@@ -434,12 +445,33 @@ export default function App() {
       })
     );
 
-    showToast(`+${pagesRead} halaman dicatat ke riwayat membaca!`);
+    // Keep active reader novel updated in real time
+    setReaderNovel((prev) => {
+      if (prev && prev.id === novelId) {
+        return {
+          ...prev,
+          ...updatedNovelState
+        };
+      }
+      return prev;
+    });
+
+    if (note) {
+      showToast(note);
+    } else {
+      showToast(`+${pagesRead} halaman dicatat ke riwayat membaca!`);
+    }
 
     if (isCloudConnected) {
       await insertReadingLogToSupabase(novelId, newLog);
       await updateNovelInSupabase(novelId, updatedNovelState);
     }
+  };
+
+  // Profile avatar photo update
+  const handleUpdateAvatar = (avatarUrl: string) => {
+    setProfile((prev) => ({ ...prev, avatarUrl }));
+    showToast('Foto profil pengguna berhasil diperbarui!');
   };
 
   // Profile name update
@@ -552,6 +584,7 @@ export default function App() {
             novels={novels}
             isCloudConnected={isCloudConnected}
             onUpdateProfileName={handleUpdateProfileName}
+            onUpdateAvatar={handleUpdateAvatar}
             onResetData={handleResetData}
             onSelectNovelById={handleSelectNovelById}
             onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}

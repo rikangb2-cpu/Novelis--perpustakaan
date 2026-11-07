@@ -80,6 +80,7 @@ export interface UserProfile {
   streakDays: number;
   favoriteGenre: string;
   avatarSeed: string;
+  avatarUrl?: string;
   supabaseUrl?: string;
   supabaseAnonKey?: string;
 }

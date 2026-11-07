@@ -29,7 +29,7 @@ interface ReaderModalProps {
   novel: Novel | null;
   isOpen: boolean;
   onClose: () => void;
-  onRecordProgress: (novelId: string, pagesRead: number, note?: string) => void;
+  onRecordProgress: (novelId: string, pagesRead: number, note?: string, targetChapter?: number) => void;
   onOpenPdf?: (novel: Novel) => void;
   onOpenQuoteModal?: (novel: Novel) => void;
 }
@@ -129,28 +129,49 @@ export const ReaderModal: React.FC<ReaderModalProps> = ({
     if (readingContainerRef.current) {
       readingContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    const targetChapNum = chapters[index]?.chapterNumber || (index + 1);
+    onRecordProgress(
+      novel.id,
+      0,
+      `Buka Bab ${targetChapNum}: ${chapters[index]?.chapterTitle || ''}`,
+      targetChapNum
+    );
   };
 
   const handleNextChapter = () => {
     if (currentChapterIdx < chapters.length - 1) {
       const nextIdx = currentChapterIdx + 1;
+      const targetChapNum = chapters[nextIdx]?.chapterNumber || (nextIdx + 1);
       setCurrentChapterIdx(nextIdx);
       if (readingContainerRef.current) {
         readingContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      // Record progress for finishing chapter
+      // Record progress for advancing to next chapter
       const pagesRead = Math.max(5, Math.ceil((novel.totalPages || 100) / chapters.length));
-      onRecordProgress(novel.id, pagesRead, `Selesai membaca ${currentChapter.chapterTitle}`);
+      onRecordProgress(
+        novel.id, 
+        pagesRead, 
+        `Lanjut membaca ke Bab ${targetChapNum}: ${chapters[nextIdx].chapterTitle}`,
+        targetChapNum
+      );
       confetti({ particleCount: 35, spread: 60 });
     }
   };
 
   const handlePrevChapter = () => {
     if (currentChapterIdx > 0) {
-      setCurrentChapterIdx(currentChapterIdx - 1);
+      const prevIdx = currentChapterIdx - 1;
+      setCurrentChapterIdx(prevIdx);
       if (readingContainerRef.current) {
         readingContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       }
+      const targetChapNum = chapters[prevIdx]?.chapterNumber || (prevIdx + 1);
+      onRecordProgress(
+        novel.id,
+        0,
+        `Kembali ke Bab ${targetChapNum}: ${chapters[prevIdx].chapterTitle}`,
+        targetChapNum
+      );
     }
   };
 
